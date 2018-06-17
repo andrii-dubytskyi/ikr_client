@@ -33,19 +33,15 @@ old_data = []
 ret = []
 # Reading config file
 CONFIG_FILE = 'client_config.json'
-with open(CONFIG_FILE) as json_data_file:
-    config = json.load(json_data_file)
-
-TOKEN_URL = '%s/sync/api/v1.0/token' % config['server_url']
-TOKEN_REFRESH_URL = "%s/sync/api/v1.0/token/refresh" % config['server_url']
-PUSH_URL = '%s/sync/api/v1.0/data' % config['server_url']
+TOKEN_URL = None
+TOKEN_REFRESH_URL = None
+PUSH_URL = None
 
 # SSL Verification DISABLED for DEBUG - self-signed cert
 SSL_VERIFY = True
 
 # HTTP requests with 3 retries
-s = requests.Session()
-s.mount(config['server_url'], HTTPAdapter(max_retries=3))
+s = None
 
 
 # Init logger
@@ -61,26 +57,12 @@ def logging_init(log_file):
     return tlogger
 
 
-log_file = config['logpath'] if 'logpath' in config else None
-logger = logging_init(log_file)
+log_file = None
+logger = None
 
 # DB connection
 # Open SQLite DB
-sql_conn = sqlite3.connect(config['sqlitepath'])
-sql_conn.row_factory = sqlite3.Row
-cur = sql_conn.cursor()
-# Open database if not create table
-sql = ("CREATE TABLE IF NOT EXISTS files\n"
-       "    (\n"
-       "        created_at INTEGER,\n"
-       "        updated_at INTEGER,\n"
-       "        filename TEXT PRIMARY KEY NOT NULL,\n"
-       "        size INTEGER,\n"
-       "        hash TEXT\n"
-       "    );\n"
-       "    ")
-cur.execute(sql)
-sql_conn.commit()
+sql_conn = None
 
 
 def get_file_hash(file_name):
@@ -303,4 +285,42 @@ def main():
 
 
 if __name__ == '__main__':
+
+    print(sys.argv)
+
+    with open(CONFIG_FILE) as json_data_file:
+        config = json.load(json_data_file)
+
+    TOKEN_URL = '%s/sync/api/v1.0/token' % config['server_url']
+    TOKEN_REFRESH_URL = "%s/sync/api/v1.0/token/refresh" % config['server_url']
+    PUSH_URL = '%s/sync/api/v1.0/data' % config['server_url']
+
+    # SSL Verification DISABLED for DEBUG - self-signed cert
+    SSL_VERIFY = True
+
+    # HTTP requests with 3 retries
+    s = requests.Session()
+    s.mount(config['server_url'], HTTPAdapter(max_retries=3))
+
+    log_file = config['logpath'] if 'logpath' in config else None
+    logger = logging_init(log_file)
+
+    # DB connection
+    # Open SQLite DB
+    sql_conn = sqlite3.connect(config['sqlitepath'])
+    sql_conn.row_factory = sqlite3.Row
+    cur = sql_conn.cursor()
+    # Open database if not create table
+    sql = ("CREATE TABLE IF NOT EXISTS files\n"
+           "    (\n"
+           "        created_at INTEGER,\n"
+           "        updated_at INTEGER,\n"
+           "        filename TEXT PRIMARY KEY NOT NULL,\n"
+           "        size INTEGER,\n"
+           "        hash TEXT\n"
+           "    );\n"
+           "    ")
+    cur.execute(sql)
+    sql_conn.commit()
+
     main()

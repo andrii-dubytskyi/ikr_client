@@ -37,7 +37,7 @@ def configure():
         try:
             response = session.get(TOKEN_REFRESH_URL,
                              auth=(userid, password),
-                             verify=False)
+                             verify=True)
         except requests.exceptions.ConnectionError:
             return None
 

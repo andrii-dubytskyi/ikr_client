@@ -52,7 +52,7 @@ class SwitchButton(object):
 
         self.window = Window(
             self.control,
-            WindowAlign=WindowAlign.CENTER,
+            align=WindowAlign.CENTER,
             height=1,
             width=width,
             style=get_style,

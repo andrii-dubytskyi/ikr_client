@@ -1,12 +1,8 @@
 import sys
 import os
 import json
+from distutils.sysconfig import get_python_lib
 
-
-_module_settings = {
-    'name': 'python_ikr_client',
-    'version': '0.4'
-}
 
 state = {'form': None, 'parameters': {'error': None}}
 def configure():
@@ -22,14 +18,34 @@ def configure():
     from prompt_toolkit.widgets import MenuContainer, MenuItem
     import time
     from custom_prompts import form
-    import ikr_client as ikr
 
     config = {
-        'server_url': ikr.config['server_url'],
+        'server_url': "https://ikr.iipcc.org",
         'directories': [],
         'sqlitepath': 'ikr_log.db',
         'logpath': 'client.log',
     }
+
+    def refresh_token(userid, password):
+        import requests
+        from requests.adapters import HTTPAdapter
+        session = requests.Session()
+        session.mount(config['server_url'], HTTPAdapter(max_retries=3))
+        TOKEN_REFRESH_URL = "%s/sync/api/v1.0/token/refresh" % config['server_url']
+
+        # refresh token
+        try:
+            response = session.get(TOKEN_REFRESH_URL,
+                             auth=(userid, password),
+                             verify=False)
+        except requests.exceptions.ConnectionError:
+            return None
+
+        # If all fine return token
+        if response.status_code == 201:
+            return response.json()['token']
+        else:
+            return None
 
     def show_ikr_login_form(error=None):
         form(
@@ -78,7 +94,7 @@ def configure():
 
     def login(form_data, app):
         global state
-        result = ikr.refresh_token(form_data['User ID'], form_data['Password'])
+        result = refresh_token(form_data['User ID'], form_data['Password'])
         if result is None:
             state['form'] = show_ikr_login_form
             state['parameters'] = {'error': 'Credentials provided are incorrect'}
@@ -123,22 +139,10 @@ def configure():
     while (state is not None):
         state['form'](**state['parameters'])
 
-    import site
-    module_path = None
-    site_packages = site.getsitepackages()
+    dir_path = get_python_lib() + '/ikr_client'
+    config_file = dir_path + '/client_config.json'
 
-    found = False
-    for site_package in site_packages:
-        modules = os.listdir(site_package)
-        for module in modules:
-            if str(module).startswith(_module_settings['name']+'-'+_module_settings['version']):
-                module_path = site_package+'\\'+module+'\\'+_module_settings['name']
-                found = True
-
-        if found:
-            break
-
-    with open(module_path+'\\client_config.json', 'w') as outfile:
+    with open(config_file, 'w') as outfile:
         json.dump(config, outfile)
 
 

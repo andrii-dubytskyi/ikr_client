@@ -36,6 +36,7 @@ ret = []
 
 dir_path = get_python_lib() + '/ikr_client'
 CONFIG_FILE = dir_path + '/client_config.json'
+print(CONFIG_FILE)
 with open(CONFIG_FILE) as json_data_file:
     config = json.load(json_data_file)
 

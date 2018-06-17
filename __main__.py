@@ -27,13 +27,14 @@ import requests
 from requests.adapters import HTTPAdapter
 import ntpath
 import requests.packages.urllib3
+from distutils.sysconfig import get_python_lib
 requests.packages.urllib3.disable_warnings()
 
 old_data = []
 ret = []
 # Reading config file
-path = os.path.abspath(__file__)
-dir_path = os.path.dirname(path)
+
+dir_path = get_python_lib() + '/ikr_client'
 CONFIG_FILE = dir_path + '/client_config.json'
 with open(CONFIG_FILE) as json_data_file:
     config = json.load(json_data_file)

@@ -18,8 +18,8 @@ import os
 import sqlite3
 import sys
 import time
-if sys.version_info < (3, 6):
-   import sha3
+#if sys.version_info < (3, 6):
+#   import sha3
 import zlib
 import base64
 import sys
@@ -266,11 +266,11 @@ def post_data(data, token):
 
 def get_token():
     # Get token and if not fresh do token refresh
-    
+
     response = s.get(TOKEN_URL,
                          auth=(config['userid'], config['password']),
                          verify=SSL_VERIFY)
-    try: 
+    try:
        # If all fine return token
        #logger.info("get_token - return code %s", response.status_code)
        if response.status_code == 200:
